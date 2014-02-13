@@ -47,7 +47,7 @@
 			<key>min</key>
 			<real>0</real>
 			<key>max</key>
-			<real>100</real>
+			<real>30</real>
 			<key>showValue</key>
 			<true/>
 			<key>key</key>
@@ -73,7 +73,7 @@
 			<key>min</key>
 			<real>0</real>
 			<key>max</key>
-			<real>100</real>
+			<real>30</real>
 			<key>showValue</key>
 			<true/>
 			<key>key</key>
