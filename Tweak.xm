@@ -19,6 +19,8 @@
 @interface _UIBackdropView : UIView
 @property(nonatomic) BOOL blursBackground;
 @property(retain, nonatomic) _UIBackdropViewSettings *inputSettings;
+@property(nonatomic) NSTimeInterval appliesOutputSettingsAnimationDuration;
+@property(nonatomic) BOOL appliesOutputSettingsAutomatically;
 - (void)transitionToSettings:(id)arg1;
 - (void)_setBlursBackground:(BOOL)arg1;
 - (CGFloat)blurRadius;
@@ -60,11 +62,24 @@ void changeBackdropViewBlurRadius(_UIBackdropView *backdropView, CGFloat newBlur
 		[backdropView transitionToSettings:settings];
 		[settings release];
 		
-		//if (newBlurRadius == 0.0f)
-		//	[backdropView _setBlursBackground:NO];
-		//else
-		//	[backdropView _setBlursBackground:YES];
+		if (newBlurRadius == 0.0f) {
+			if (backdropView.appliesOutputSettingsAutomatically) {
+				[backdropView _setBlursBackground:YES];
+				
+				dispatch_time_t time = dispatch_time(DISPATCH_TIME_NOW, (int64_t)(backdropView.appliesOutputSettingsAnimationDuration * 0.5 * NSEC_PER_SEC));
+				dispatch_after(time, dispatch_get_main_queue(), ^(void){
+					[backdropView _setBlursBackground:NO];
+				});
+			}
+			else
+				[backdropView _setBlursBackground:NO];
+		}
+		else 
+			[backdropView _setBlursBackground:YES];
 	}
+	
+	if (!enabled && !backdropView.blursBackground)
+		[backdropView _setBlursBackground:YES];
 }
 
 
