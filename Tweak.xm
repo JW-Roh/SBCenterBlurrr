@@ -9,6 +9,7 @@
 + (id)settingsForPrivateStyle:(NSInteger)arg1 graphicsQuality:(NSInteger)arg2;
 + (id)settingsForStyle:(NSInteger)arg1 graphicsQuality:(NSInteger)arg2;
 @property(nonatomic) CGFloat blurRadius;
+@property(copy, nonatomic) NSString *blurQuality;
 @property(nonatomic) CGFloat colorTintAlpha;
 @property(retain, nonatomic) UIColor *colorTint;
 @property(nonatomic) CGFloat grayscaleTintAlpha;
@@ -16,8 +17,10 @@
 @property(nonatomic) NSInteger style;
 @end
 @interface _UIBackdropView : UIView
+@property(nonatomic) BOOL blursBackground;
 @property(retain, nonatomic) _UIBackdropViewSettings *inputSettings;
 - (void)transitionToSettings:(id)arg1;
+- (void)_setBlursBackground:(BOOL)arg1;
 - (CGFloat)blurRadius;
 @end
 
@@ -45,13 +48,8 @@ CGFloat _CCBlurRadius = kDefaultBlurRadiusForBackdropStyleAdaptiveLight;
 
 
 
-%hook SBNotificationCenterViewController
-
-- (void)viewWillAppear:(BOOL)animated {
-	%orig;
-	
-	CGFloat newBlurRadius = enabled ? _NCBlurRadius : kDefaultBlurRadiusForBackdropStyleDark;
-	_UIBackdropView *backdropView = self.backdropView;
+void changeBackdropViewBlurRadius(_UIBackdropView *backdropView, CGFloat newBlurRadius) {
+	if (backdropView == nil) return;
 	
 	if (backdropView.blurRadius != newBlurRadius) {
 		_UIBackdropViewSettings *settings = backdropView.inputSettings;
@@ -61,7 +59,24 @@ CGFloat _CCBlurRadius = kDefaultBlurRadiusForBackdropStyleAdaptiveLight;
 		
 		[backdropView transitionToSettings:settings];
 		[settings release];
+		
+		//if (newBlurRadius == 0.0f)
+		//	[backdropView _setBlursBackground:NO];
+		//else
+		//	[backdropView _setBlursBackground:YES];
 	}
+}
+
+
+
+%hook SBNotificationCenterViewController
+
+- (void)viewWillAppear:(BOOL)animated {
+	%orig;
+	
+	CGFloat newBlurRadius = enabled ? _NCBlurRadius : kDefaultBlurRadiusForBackdropStyleDark;
+	
+	changeBackdropViewBlurRadius(self.backdropView, newBlurRadius);
 }
 
 %end
@@ -74,17 +89,8 @@ CGFloat _CCBlurRadius = kDefaultBlurRadiusForBackdropStyleAdaptiveLight;
 	%orig;
 	
 	CGFloat newBlurRadius = enabled ? _CCBlurRadius : kDefaultBlurRadiusForBackdropStyleAdaptiveLight;
-	_UIBackdropView *backdropView = self.backdropView;
 	
-	if (backdropView.blurRadius != newBlurRadius) {
-		_UIBackdropViewSettings *settings = backdropView.inputSettings;
-		
-		[settings retain];
-		settings.blurRadius = newBlurRadius;
-		
-		[backdropView transitionToSettings:settings];
-		[settings release];
-	}
+	changeBackdropViewBlurRadius(self.backdropView, newBlurRadius);
 }
 
 %end
