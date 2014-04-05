@@ -37,6 +37,11 @@
 @end
 
 
+// Auxo 2
+@interface UminoControlCenterBottomView : UIView @end
+@interface UminoControlCenterTopView : UIView @end
+
+
 
 #define kDefaultBlurRadiusForBackdropStyleDark						20.0f
 #define kDefaultBlurRadiusForBackdropStyleAdaptiveLight				30.0f
@@ -106,6 +111,58 @@ void changeBackdropViewBlurRadius(_UIBackdropView *backdropView, CGFloat newBlur
 	CGFloat newBlurRadius = enabled ? _CCBlurRadius : kDefaultBlurRadiusForBackdropStyleAdaptiveLight;
 	
 	changeBackdropViewBlurRadius(self.backdropView, newBlurRadius);
+}
+
+%end
+
+
+%group Auxo2
+
+%hook UminoControlCenterTopView
+
+- (void)setHidden:(BOOL)hide {
+	%orig;
+	
+	if (!hide) {
+		_UIBackdropView *backgroundView = MSHookIvar<_UIBackdropView *>(self, "_backgroundView");
+		
+		if (!backgroundView || ![backgroundView isKindOfClass:%c(_UIBackdropView)]) return;
+		
+		CGFloat newBlurRadius = enabled ? _CCBlurRadius : kDefaultBlurRadiusForBackdropStyleAdaptiveLight;
+		
+		changeBackdropViewBlurRadius(backgroundView, newBlurRadius);
+	}
+}
+
+%end
+
+%hook UminoControlCenterBottomView
+
+- (void)setHidden:(BOOL)hide {
+	%orig;
+	
+	if (!hide) {
+		_UIBackdropView *backgroundView = MSHookIvar<_UIBackdropView *>(self, "_backgroundView");
+		
+		if (!backgroundView || ![backgroundView isKindOfClass:%c(_UIBackdropView)]) return;
+		
+		CGFloat newBlurRadius = enabled ? _CCBlurRadius : kDefaultBlurRadiusForBackdropStyleAdaptiveLight;
+		
+		changeBackdropViewBlurRadius(backgroundView, newBlurRadius);
+	}
+}
+
+%end
+
+%end
+
+
+%hook SpringBoard
+
+- (void)applicationDidFinishLaunching:(id)application {
+	%orig;
+	
+	%init(Auxo2);
 }
 
 %end

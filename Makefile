@@ -16,7 +16,7 @@ internal-stage::
 after-install::
 	install.exec "killall -9 SpringBoard"
 
-FW_DEVICE_IP = 192.168.1.4
+FW_DEVICE_IP = 192.168.1.9
 
 ri:: remoteinstall
 remoteinstall:: all internal-remoteinstall after-remoteinstall
