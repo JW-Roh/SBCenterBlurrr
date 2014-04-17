@@ -40,6 +40,7 @@
 // Auxo 2
 @interface UminoControlCenterBottomView : UIView @end
 @interface UminoControlCenterTopView : UIView @end
+@interface UminoControlCenterOriginalView : UIView @end
 
 
 
@@ -137,6 +138,24 @@ void changeBackdropViewBlurRadius(_UIBackdropView *backdropView, CGFloat newBlur
 %end
 
 %hook UminoControlCenterBottomView
+
+- (void)setHidden:(BOOL)hide {
+	%orig;
+	
+	if (!hide) {
+		_UIBackdropView *backgroundView = MSHookIvar<_UIBackdropView *>(self, "_backgroundView");
+		
+		if (!backgroundView || ![backgroundView isKindOfClass:%c(_UIBackdropView)]) return;
+		
+		CGFloat newBlurRadius = enabled ? _CCBlurRadius : kDefaultBlurRadiusForBackdropStyleAdaptiveLight;
+		
+		changeBackdropViewBlurRadius(backgroundView, newBlurRadius);
+	}
+}
+
+%end
+
+%hook UminoControlCenterOriginalView
 
 - (void)setHidden:(BOOL)hide {
 	%orig;
