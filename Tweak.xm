@@ -92,7 +92,7 @@ void changeBackdropViewBlurRadius(_UIBackdropView *backdropView, CGFloat newBlur
 
 %hook SBNotificationCenterViewController
 
-- (void)viewWillAppear:(BOOL)animated {
+- (void)viewWillLayoutSubviews {
 	%orig;
 	
 	CGFloat newBlurRadius = enabled ? _NCBlurRadius : kDefaultBlurRadiusForBackdropStyleDark;
