@@ -189,19 +189,30 @@ void changeBackdropViewBlurRadius(_UIBackdropView *backdropView, CGFloat newBlur
 
 
 void loadSettings() {
-	NSDictionary *dict = [NSDictionary dictionaryWithContentsOfFile:@"/User/Library/Preferences/me.devbug.SBCenterBlurrr.plist"];
-	
-	enabled = [dict[@"EnableBlurrr"] boolValue];
-	if (dict[@"EnableBlurrr"] == nil)
-		enabled = YES;
-	
-	_CCBlurRadius = [dict[@"CCBlurRadius"] floatValue];
-	if (dict[@"CCBlurRadius"] == nil)
-		_CCBlurRadius = kDefaultBlurRadiusForBackdropStyleAdaptiveLight;
-	
-	_NCBlurRadius = [dict[@"NCBlurRadius"] floatValue];
-	if (dict[@"NCBlurRadius"] == nil)
-		_NCBlurRadius = kDefaultBlurRadiusForBackdropStyleDark;
+	// iOS 8.1 == 1141.14
+	if (kCFCoreFoundationVersionNumber >= 900.00) {
+		#define kSettingsPListName "me.devbug.SBCenterBlurrr"
+		CFPreferencesAppSynchronize(CFSTR(kSettingsPListName));
+		
+		enabled = !CFPreferencesCopyAppValue(CFSTR("EnableBlurrr"), CFSTR(kSettingsPListName)) ? YES : [(id)CFBridgingRelease(CFPreferencesCopyAppValue(CFSTR("EnableBlurrr"), CFSTR(kSettingsPListName))) boolValue];
+		_CCBlurRadius = !CFPreferencesCopyAppValue(CFSTR("CCBlurRadius"), CFSTR(kSettingsPListName)) ? kDefaultBlurRadiusForBackdropStyleAdaptiveLight : [(id)CFBridgingRelease(CFPreferencesCopyAppValue(CFSTR("CCBlurRadius"), CFSTR(kSettingsPListName))) floatValue];
+		_NCBlurRadius = !CFPreferencesCopyAppValue(CFSTR("NCBlurRadius"), CFSTR(kSettingsPListName)) ? kDefaultBlurRadiusForBackdropStyleDark : [(id)CFBridgingRelease(CFPreferencesCopyAppValue(CFSTR("NCBlurRadius"), CFSTR(kSettingsPListName))) floatValue];
+	}
+	else {
+		NSDictionary *dict = [NSDictionary dictionaryWithContentsOfFile:@"/User/Library/Preferences/me.devbug.SBCenterBlurrr.plist"];
+		
+		enabled = [dict[@"EnableBlurrr"] boolValue];
+		if (dict[@"EnableBlurrr"] == nil)
+			enabled = YES;
+		
+		_CCBlurRadius = [dict[@"CCBlurRadius"] floatValue];
+		if (dict[@"CCBlurRadius"] == nil)
+			_CCBlurRadius = kDefaultBlurRadiusForBackdropStyleAdaptiveLight;
+		
+		_NCBlurRadius = [dict[@"NCBlurRadius"] floatValue];
+		if (dict[@"NCBlurRadius"] == nil)
+			_NCBlurRadius = kDefaultBlurRadiusForBackdropStyleDark;
+	}
 }
 
 static void reloadPrefsNotification(CFNotificationCenterRef center,
