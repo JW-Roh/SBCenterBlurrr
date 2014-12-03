@@ -53,6 +53,8 @@ BOOL enabled = YES;
 CGFloat _NCBlurRadius = kDefaultBlurRadiusForBackdropStyleDark;
 CGFloat _CCBlurRadius = kDefaultBlurRadiusForBackdropStyleAdaptiveLight;
 
+BOOL isFirmware8 = NO;
+NSUserDefaults *userDefaults = nil;
 
 
 
@@ -84,7 +86,7 @@ void changeBackdropViewBlurRadius(_UIBackdropView *backdropView, CGFloat newBlur
 			[backdropView _setBlursBackground:YES];
 	}
 	
-	if (!enabled && !backdropView.blursBackground)
+	if (![userDefaults boolForKey:@"EnableBlurrr"] && !backdropView.blursBackground)
 		[backdropView _setBlursBackground:YES];
 }
 
@@ -95,7 +97,7 @@ void changeBackdropViewBlurRadius(_UIBackdropView *backdropView, CGFloat newBlur
 - (void)viewWillLayoutSubviews {
 	%orig;
 	
-	CGFloat newBlurRadius = enabled ? _NCBlurRadius : kDefaultBlurRadiusForBackdropStyleDark;
+	CGFloat newBlurRadius = [userDefaults boolForKey:@"EnableBlurrr"] ? [userDefaults floatForKey:@"NCBlurRadius"] : kDefaultBlurRadiusForBackdropStyleDark;
 	
 	changeBackdropViewBlurRadius(self.backdropView, newBlurRadius);
 }
@@ -109,7 +111,7 @@ void changeBackdropViewBlurRadius(_UIBackdropView *backdropView, CGFloat newBlur
 - (void)layoutSubviews {
 	%orig;
 	
-	CGFloat newBlurRadius = enabled ? _CCBlurRadius : kDefaultBlurRadiusForBackdropStyleAdaptiveLight;
+	CGFloat newBlurRadius = [userDefaults boolForKey:@"EnableBlurrr"] ? [userDefaults floatForKey:@"CCBlurRadius"] : kDefaultBlurRadiusForBackdropStyleAdaptiveLight;
 	
 	changeBackdropViewBlurRadius(self.backdropView, newBlurRadius);
 }
@@ -129,7 +131,7 @@ void changeBackdropViewBlurRadius(_UIBackdropView *backdropView, CGFloat newBlur
 		
 		if (!backgroundView || ![backgroundView isKindOfClass:%c(_UIBackdropView)]) return;
 		
-		CGFloat newBlurRadius = enabled ? _CCBlurRadius : kDefaultBlurRadiusForBackdropStyleAdaptiveLight;
+		CGFloat newBlurRadius = [userDefaults boolForKey:@"EnableBlurrr"] ? [userDefaults floatForKey:@"CCBlurRadius"] : kDefaultBlurRadiusForBackdropStyleAdaptiveLight;
 		
 		changeBackdropViewBlurRadius(backgroundView, newBlurRadius);
 	}
@@ -147,7 +149,7 @@ void changeBackdropViewBlurRadius(_UIBackdropView *backdropView, CGFloat newBlur
 		
 		if (!backgroundView || ![backgroundView isKindOfClass:%c(_UIBackdropView)]) return;
 		
-		CGFloat newBlurRadius = enabled ? _CCBlurRadius : kDefaultBlurRadiusForBackdropStyleAdaptiveLight;
+		CGFloat newBlurRadius = [userDefaults boolForKey:@"EnableBlurrr"] ? [userDefaults floatForKey:@"CCBlurRadius"] : kDefaultBlurRadiusForBackdropStyleAdaptiveLight;
 		
 		changeBackdropViewBlurRadius(backgroundView, newBlurRadius);
 	}
@@ -165,7 +167,7 @@ void changeBackdropViewBlurRadius(_UIBackdropView *backdropView, CGFloat newBlur
 		
 		if (!backgroundView || ![backgroundView isKindOfClass:%c(_UIBackdropView)]) return;
 		
-		CGFloat newBlurRadius = enabled ? _CCBlurRadius : kDefaultBlurRadiusForBackdropStyleAdaptiveLight;
+		CGFloat newBlurRadius = [userDefaults boolForKey:@"EnableBlurrr"] ? [userDefaults floatForKey:@"CCBlurRadius"] : kDefaultBlurRadiusForBackdropStyleAdaptiveLight;
 		
 		changeBackdropViewBlurRadius(backgroundView, newBlurRadius);
 	}
@@ -189,29 +191,17 @@ void changeBackdropViewBlurRadius(_UIBackdropView *backdropView, CGFloat newBlur
 
 
 void loadSettings() {
-	// iOS 8.1 == 1141.14
-	if (kCFCoreFoundationVersionNumber >= 900.00) {
-		#define kSettingsPListName "me.devbug.SBCenterBlurrr"
-		CFPreferencesAppSynchronize(CFSTR(kSettingsPListName));
-		
-		enabled = !CFPreferencesCopyAppValue(CFSTR("EnableBlurrr"), CFSTR(kSettingsPListName)) ? YES : [(id)CFBridgingRelease(CFPreferencesCopyAppValue(CFSTR("EnableBlurrr"), CFSTR(kSettingsPListName))) boolValue];
-		_CCBlurRadius = !CFPreferencesCopyAppValue(CFSTR("CCBlurRadius"), CFSTR(kSettingsPListName)) ? kDefaultBlurRadiusForBackdropStyleAdaptiveLight : [(id)CFBridgingRelease(CFPreferencesCopyAppValue(CFSTR("CCBlurRadius"), CFSTR(kSettingsPListName))) floatValue];
-		_NCBlurRadius = !CFPreferencesCopyAppValue(CFSTR("NCBlurRadius"), CFSTR(kSettingsPListName)) ? kDefaultBlurRadiusForBackdropStyleDark : [(id)CFBridgingRelease(CFPreferencesCopyAppValue(CFSTR("NCBlurRadius"), CFSTR(kSettingsPListName))) floatValue];
-	}
-	else {
+	if (!isFirmware8) {
 		NSDictionary *dict = [NSDictionary dictionaryWithContentsOfFile:@"/User/Library/Preferences/me.devbug.SBCenterBlurrr.plist"];
 		
-		enabled = [dict[@"EnableBlurrr"] boolValue];
-		if (dict[@"EnableBlurrr"] == nil)
-			enabled = YES;
+		if (dict[@"EnableBlurrr"])
+			[userDefaults setObject:dict[@"EnableBlurrr"] forKey:@"EnableBlurrr"];
 		
-		_CCBlurRadius = [dict[@"CCBlurRadius"] floatValue];
-		if (dict[@"CCBlurRadius"] == nil)
-			_CCBlurRadius = kDefaultBlurRadiusForBackdropStyleAdaptiveLight;
+		if (dict[@"CCBlurRadius"])
+			[userDefaults setObject:dict[@"CCBlurRadius"] forKey:@"CCBlurRadius"];
 		
-		_NCBlurRadius = [dict[@"NCBlurRadius"] floatValue];
-		if (dict[@"NCBlurRadius"] == nil)
-			_NCBlurRadius = kDefaultBlurRadiusForBackdropStyleDark;
+		if (dict[@"NCBlurRadius"])
+			[userDefaults setObject:dict[@"NCBlurRadius"] forKey:@"NCBlurRadius"];
 	}
 }
 
@@ -227,6 +217,17 @@ static void reloadPrefsNotification(CFNotificationCenterRef center,
 
 %ctor
 {
+	// iOS 8.1 == 1141.14
+	isFirmware8 = kCFCoreFoundationVersionNumber >= 900.00;
+	
+	#define kSettingsPListName @"me.devbug.SBCenterBlurrr"
+	userDefaults = [[NSUserDefaults alloc] initWithSuiteName:kSettingsPListName];
+	[userDefaults registerDefaults:@{
+		@"EnableBlurrr" : @YES,
+		@"CCBlurRadius" : @kDefaultBlurRadiusForBackdropStyleAdaptiveLight,
+		@"NCBlurRadius" : @kDefaultBlurRadiusForBackdropStyleDark
+	}];
+	
 	CFNotificationCenterAddObserver(CFNotificationCenterGetDarwinNotifyCenter(), NULL, &reloadPrefsNotification, CFSTR("me.devbug.SBCenterBlurrr.prefnoti"), NULL, CFNotificationSuspensionBehaviorCoalesce);
 	loadSettings();
 	
