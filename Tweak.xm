@@ -49,10 +49,6 @@
 
 
 
-BOOL enabled = YES;
-CGFloat _NCBlurRadius = kDefaultBlurRadiusForBackdropStyleDark;
-CGFloat _CCBlurRadius = kDefaultBlurRadiusForBackdropStyleAdaptiveLight;
-
 BOOL isFirmware8 = NO;
 NSUserDefaults *userDefaults = nil;
 
