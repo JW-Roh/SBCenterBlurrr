@@ -1,5 +1,7 @@
 ARCHS = armv7 armv7s arm64
 
+PACKAGE_VERSION = 0.0.3
+
 include theos/makefiles/common.mk
 
 TWEAK_NAME = SBCenterBlurrr
