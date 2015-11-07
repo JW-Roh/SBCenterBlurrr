@@ -179,7 +179,8 @@ void changeBackdropViewBlurRadius(_UIBackdropView *backdropView, CGFloat newBlur
 - (void)applicationDidFinishLaunching:(id)application {
 	%orig;
 	
-	%init(Auxo2);
+	if (%c(UminoControlCenterTopView))
+		%init(Auxo2);
 }
 
 %end
